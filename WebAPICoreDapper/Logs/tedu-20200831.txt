@@ -1,0 +1,6 @@
+2020-08-31T12:16:47.6196451+07:00  [INF] Application started. Press Ctrl+C to shut down. (dcaefe54)
+2020-08-31T12:16:47.6587979+07:00  [INF] Hosting environment: "Development" (c3307c92)
+2020-08-31T12:16:47.6771991+07:00  [INF] Content root path: "F:\source\WebAPICoreDapper\WebAPICoreDapper" (b5d60022)
+2020-08-31T14:03:39.2681836+07:00  [INF] Application started. Press Ctrl+C to shut down. (dcaefe54)
+2020-08-31T14:03:39.3691889+07:00  [INF] Hosting environment: "Development" (c3307c92)
+2020-08-31T14:03:39.3743946+07:00  [INF] Content root path: "F:\source\WebAPICoreDapper\WebAPICoreDapper" (b5d60022)
