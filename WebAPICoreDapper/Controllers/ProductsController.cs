@@ -130,7 +130,6 @@ namespace WebAPICoreDapper.Controllers
 
         }
 
-        // PUT: api/Product/5
         [HttpPut("{id}")]
         [ValidateModel]
         public async Task<IActionResult> Put(int id, [FromBody] Product product)
@@ -150,16 +149,14 @@ namespace WebAPICoreDapper.Controllers
                 paramaters.Add("@seoKeyword", product.SeoKeyword);
                 paramaters.Add("@sku", product.Sku);
                 paramaters.Add("@price", product.Price);
-                paramaters.Add("@isActive", product.Sku);
+                paramaters.Add("@isActive", product.IsActive);
                 paramaters.Add("@imageUrl", product.ImageUrl);
                 paramaters.Add("@language", CultureInfo.CurrentCulture.Name);
-                paramaters.Add("@categoryId", product.CategoryIds); 
-
+                paramaters.Add("@categoryIds", product.CategoryIds);
                 await conn.ExecuteAsync("Update_Product", paramaters, null, null, System.Data.CommandType.StoredProcedure);
                 return Ok();
             }
         }
-
         // DELETE: api/ApiWithActions/5
         [HttpDelete("{id}")]
         public async Task Delete(int id)
