@@ -39,14 +39,17 @@ namespace WebAPICoreDapper.Controllers
         [HttpGet]
         public async Task<IEnumerable<Product>> Get()
         {
-            var culture = CultureInfo.CurrentCulture.Name;
-            string text = _localizer["test"];
-            string text1 = _locService.GetLocalizedHtmlString("ForgotPassword");
+            // var culture = CultureInfo.CurrentCulture.Name;
+            // string text = _localizer["test"];
+            // string text1 = _locService.GetLocalizedHtmlString("ForgotPassword");
             _logger.LogTrace("Test product controller");
             using var conn = new SqlConnection(_connectionString);
             if (conn.State == System.Data.ConnectionState.Closed)
                 conn.Open();
-            var result = await conn.QueryAsync<Product>("Get_Product_All", null, null, null, System.Data.CommandType.StoredProcedure);
+            var paramaters = new DynamicParameters();
+            paramaters.Add("@language", CultureInfo.CurrentCulture.Name);
+
+            var result = await conn.QueryAsync<Product>("Get_Product_All", paramaters, null, null, System.Data.CommandType.StoredProcedure);
             return result;
         }
 
@@ -60,6 +63,7 @@ namespace WebAPICoreDapper.Controllers
                     conn.Open();
                 var paramaters = new DynamicParameters();
                 paramaters.Add("@id", id);
+                paramaters.Add("@language", CultureInfo.CurrentCulture.Name);
                 var result = await conn.QueryAsync<Product>("Get_Product_ById", paramaters, null, null, System.Data.CommandType.StoredProcedure);
                 return result.Single();
             }
@@ -77,6 +81,7 @@ namespace WebAPICoreDapper.Controllers
                 paramaters.Add("@categoryId", categoryId);
                 paramaters.Add("@pageIndex", pageIndex);
                 paramaters.Add("@pageSize", pageSize);
+                paramaters.Add("@language", CultureInfo.CurrentCulture.Name);
                 paramaters.Add("@totalRow", dbType: System.Data.DbType.Int32, direction: System.Data.ParameterDirection.Output);
 
                 var result = await conn.QueryAsync<Product>("Get_Product_AllPaging", paramaters, null, null, System.Data.CommandType.StoredProcedure);
@@ -103,11 +108,20 @@ namespace WebAPICoreDapper.Controllers
                 if (conn.State == System.Data.ConnectionState.Closed)
                     conn.Open();
                 var paramaters = new DynamicParameters();
+                paramaters.Add("@name", product.Name);
+                paramaters.Add("@description", product.Description);
+                paramaters.Add("@content", product.Content);
+                paramaters.Add("@seoDescription", product.SeoDescription);
+                paramaters.Add("@seoAlias", product.SeoAlias);
+                paramaters.Add("@seoTitle", product.SeoTitle);
+                paramaters.Add("@seoKeyword", product.SeoKeyword);
                 paramaters.Add("@sku", product.Sku);
                 paramaters.Add("@price", product.Price);
                 paramaters.Add("@isActive", product.IsActive);
                 paramaters.Add("@imageUrl", product.ImageUrl);
+                paramaters.Add("@language", CultureInfo.CurrentCulture.Name);
                 paramaters.Add("@id", dbType: System.Data.DbType.Int32, direction: System.Data.ParameterDirection.Output);
+                paramaters.Add("@categoryIds", product.CategoryIds);
                 var result = await conn.ExecuteAsync("Create_Product", paramaters, null, null, System.Data.CommandType.StoredProcedure);
 
                 int newId = paramaters.Get<int>("@id");
@@ -127,10 +141,20 @@ namespace WebAPICoreDapper.Controllers
                     conn.Open();
                 var paramaters = new DynamicParameters();
                 paramaters.Add("@id", id);
+                paramaters.Add("@name", product.Name);
+                paramaters.Add("@description", product.Description);
+                paramaters.Add("@content", product.Content);
+                paramaters.Add("@seoDescription", product.SeoDescription);
+                paramaters.Add("@seoAlias", product.SeoAlias);
+                paramaters.Add("@seoTitle", product.SeoTitle);
+                paramaters.Add("@seoKeyword", product.SeoKeyword);
                 paramaters.Add("@sku", product.Sku);
                 paramaters.Add("@price", product.Price);
                 paramaters.Add("@isActive", product.Sku);
                 paramaters.Add("@imageUrl", product.ImageUrl);
+                paramaters.Add("@language", CultureInfo.CurrentCulture.Name);
+                paramaters.Add("@categoryId", product.CategoryIds); 
+
                 await conn.ExecuteAsync("Update_Product", paramaters, null, null, System.Data.CommandType.StoredProcedure);
                 return Ok();
             }

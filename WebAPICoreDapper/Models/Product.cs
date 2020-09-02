@@ -25,5 +25,18 @@ namespace WebAPICoreDapper.Models
         public int ViewCount { get; set; }
 
         public DateTime CreatedAt { get; set; }
+        public string Name { get; set; }
+
+        public string Content { get; set; }
+
+        public string Description { get; set; }
+
+        public string SeoAlias { get; set; }
+        public string SeoDescription { get; set; }
+        public string SeoKeyword { get; set; }
+
+        public string SeoTitle { get; set; }
+        public string CategoryIds { get; set; }
+        public string CategoryName { get; set; }
     }
 }
