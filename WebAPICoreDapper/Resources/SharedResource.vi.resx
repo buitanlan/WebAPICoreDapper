@@ -118,6 +118,12 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="ForgotPassword" xml:space="preserve">
-    <value>Quên mật khẩu</value>
+    <value>Forgot password</value>
+  </data>
+  <data name="MinAndMaxLengthErrorMsg" xml:space="preserve">
+    <value>{0} have to at least {2} characters.</value>
+  </data>
+  <data name="RequiredErrorMsg" xml:space="preserve">
+    <value>{0} is required</value>
   </data>
 </root>
