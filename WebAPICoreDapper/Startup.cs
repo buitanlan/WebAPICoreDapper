@@ -45,6 +45,16 @@ namespace WebAPICoreDapper
 
             services.AddIdentity<AppUser, AppRole>()
             .AddDefaultTokenProviders();
+            services.Configure<IdentityOptions>(opt =>
+            {
+                // Default Password settings.
+                opt.Password.RequireDigit = true;
+                opt.Password.RequireLowercase = false;
+                opt.Password.RequireNonAlphanumeric = false;
+                opt.Password.RequireUppercase = false;
+                opt.Password.RequiredLength = 6;
+                opt.Password.RequiredUniqueChars = 1;
+            });
             services.AddControllers()
                 .AddNewtonsoftJson(options =>
                 {
@@ -79,7 +89,7 @@ namespace WebAPICoreDapper
                         var assemblyName = new AssemblyName(typeof(SharedResource).GetTypeInfo().Assembly.FullName);
                         return factory.Create("SharedResource", assemblyName.Name);
                     };
-                }); 
+                });
             services.AddSwaggerGen();
         }
 

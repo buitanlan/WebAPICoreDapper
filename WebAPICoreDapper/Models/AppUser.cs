@@ -30,5 +30,7 @@ namespace WebAPICoreDapper.Models
         public string FullName { get; set; }
 
         public string Address { get; set; }
+        public bool LockoutEnabled { get; set; }
+        public int AccessFailedCount { get; set; }
     }
 }
