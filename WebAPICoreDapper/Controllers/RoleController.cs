@@ -10,8 +10,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using WebAPICoreDapper.Dtos;
-using WebAPICoreDapper.Filters;
 using WebAPICoreDapper.Models;
+using WebAPICoreDapper.Filters;
 
 namespace WebAPICoreDapper.Controllers
 {
