@@ -24,9 +24,9 @@ using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using WebAPICoreDapper.Data;
-using WebAPICoreDapper.Data.Interfaces;
 using WebAPICoreDapper.Data.Models;
 using WebAPICoreDapper.Data.Repositories;
+using WebAPICoreDapper.Data.Repositories.Interfaces;
 using WebAPICoreDapper.Resources;
 
 namespace WebAPICoreDapper
