@@ -24,7 +24,9 @@ using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using WebAPICoreDapper.Data;
+using WebAPICoreDapper.Data.Interfaces;
 using WebAPICoreDapper.Data.Models;
+using WebAPICoreDapper.Data.Repositories;
 using WebAPICoreDapper.Resources;
 
 namespace WebAPICoreDapper
@@ -43,6 +45,7 @@ namespace WebAPICoreDapper
         {
             services.AddTransient<IUserStore<AppUser>, UserStore>();
             services.AddTransient<IRoleStore<AppRole>, RoleStore>();
+            services.AddTransient<IProductRepository, ProductRepository>();
 
             services.AddIdentity<AppUser, AppRole>()
             .AddDefaultTokenProviders();

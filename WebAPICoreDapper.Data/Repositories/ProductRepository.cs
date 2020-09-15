@@ -8,10 +8,12 @@ using System.Text;
 using System.Threading.Tasks;
 using WebAPICoreDapper.Data.Models;
 using WebAPICoreDapper.Utilities.Dtos;
+using WebAPICoreDapper.Data.Interfaces;
 
 namespace WebAPICoreDapper.Data.Repositories
 {
-    public class ProductRepository
+    public class ProductRepository : IProductRepository
+
     {
         private readonly string _connectionString;
 

@@ -14,6 +14,7 @@ using WebAPICoreDapper.Resources;
 using WebAPICoreDapper.Data.Models;
 using WebAPICoreDapper.Data.Repositories;
 using WebAPICoreDapper.Utilities.Dtos;
+using WebAPICoreDapper.Data.Interfaces;
 
 namespace WebAPICoreDapper.Controllers
 {
@@ -26,15 +27,15 @@ namespace WebAPICoreDapper.Controllers
         private readonly ILogger<ProductController> _logger;
         private readonly IStringLocalizer<ProductController> _localizer;
         private readonly LocService _locService;
-        private readonly ProductRepository _productRepository;
+        private readonly IProductRepository _productRepository;
         public ProductController(IConfiguration configuration, ILogger<ProductController> logger,
-        IStringLocalizer<ProductController> localizer, LocService locService, ProductRepository productRepository)
+        IStringLocalizer<ProductController> localizer, LocService locService, IProductRepository productRepository)
         {
             _connectionString = configuration.GetConnectionString("DbConnectionString");
             _logger = logger;
             _localizer = localizer;
             _locService = locService;
-            _productRepository = new ProductRepository(configuration);
+            _productRepository = productRepository;
         }
         // GET: api/Product
         [HttpGet]
