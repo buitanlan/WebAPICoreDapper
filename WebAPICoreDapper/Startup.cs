@@ -24,7 +24,7 @@ using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using WebAPICoreDapper.Data;
-using WebAPICoreDapper.Models;
+using WebAPICoreDapper.Data.Models;
 using WebAPICoreDapper.Resources;
 
 namespace WebAPICoreDapper
@@ -96,19 +96,19 @@ namespace WebAPICoreDapper
                 c.SwaggerDoc("v1", new OpenApiInfo
                 {
                     Version = "v1",
-                    Title = "ToDo API",
-                    Description = "A simple example ASP.NET Core Web API",
+                    Title = "E-commerce API",
+                    Description = "A simple e-commerce ASP.NET Core Web API",
                     TermsOfService = new Uri("https://example.com/terms"),
                     Contact = new OpenApiContact
                     {
-                        Name = "Shayne Boyer",
+                        Name = "Bui Tan Lan",
                         Email = string.Empty,
-                        Url = new Uri("https://twitter.com/spboyer"),
+                        Url = new Uri("https://github.com/BuiTanLan"),
                     },
                     License = new OpenApiLicense
                     {
-                        Name = "Use under LICX",
-                        Url = new Uri("https://example.com/license"),
+                        Name = "MIT License",
+                        //Url = new Uri("https://example.com/license"),
                     }
                 });
 

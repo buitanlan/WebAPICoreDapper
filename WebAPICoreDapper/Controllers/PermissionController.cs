@@ -7,7 +7,7 @@ using System.Data;
 using Microsoft.Data.SqlClient;
 using System.Threading.Tasks;
 using WebAPICoreDapper.Extensions;
-using WebAPICoreDapper.ViewModels;
+using WebAPICoreDapper.Data.ViewModels;
 
 namespace WebAPICoreDapper.Controllers
 {

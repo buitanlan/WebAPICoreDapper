@@ -5,7 +5,7 @@ using System;
 using Microsoft.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
-using WebAPICoreDapper.Models;
+using WebAPICoreDapper.Data.Models;
 
 namespace WebAPICoreDapper.Data
 {
