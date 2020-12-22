@@ -21,13 +21,16 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using WebAPICoreDapper.Data;
 using WebAPICoreDapper.Data.Models;
 using WebAPICoreDapper.Data.Repositories;
 using WebAPICoreDapper.Data.Repositories.Interfaces;
 using WebAPICoreDapper.Resources;
+using System.Text.Json;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace WebAPICoreDapper
 {
@@ -59,11 +62,17 @@ namespace WebAPICoreDapper
                 opt.Password.RequiredLength = 6;
                 opt.Password.RequiredUniqueChars = 1;
             });
-            services.AddControllers()
-                .AddNewtonsoftJson(options =>
-                {
-                    options.SerializerSettings.ContractResolver = new DefaultContractResolver();
-                });
+            services.AddControllers();
+            //     .AddJsonOptions(options =>
+
+            // {
+            //     // Use the default property (Pascal) casing.
+            //     options.JsonSerializerOptions.PropertyNamingPolicy = null;
+            // });
+            // // .AddNewtonsoftJson(options =>
+            // // {
+            // //     options.SerializerSettings.ContractResolver = new DefaultContractResolver();
+            // // });
             var supportedCultures = new[]
             {
                 new CultureInfo("en-US"),
@@ -83,6 +92,23 @@ namespace WebAPICoreDapper
             services.AddSingleton<LocService>();
 
             services.AddLocalization(options => options.ResourcesPath = "Resources");
+
+            //Add authentication to get claims
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer( cfg =>
+            {
+                cfg.RequireHttpsMetadata = false;
+                cfg.SaveToken = true;
+                cfg.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidIssuer = Configuration["Token:Issuer"],
+                    ValidAudience = Configuration["Token:Issuer"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Token:Key"]))
+                };
+            });
 
             services.AddMvc()
                 .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
@@ -154,27 +180,32 @@ namespace WebAPICoreDapper
             app.UseExceptionHandler(options =>
             {
                 options.Run(async context =>
-                 {
-                     context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                {
+                    context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
-                     var ex = context.Features.Get<IExceptionHandlerFeature>()?.Error;
-                     if (ex == null) return;
+                    var ex = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+                    if (ex == null) return;
 
-                     var error = new
-                     {
-                         message = ex.Message
-                     };
+                    var error = new
+                    {
+                        message = ex.Message
+                    };
 
-                     context.Response.ContentType = "application/json";
-                     context.Response.Headers.Add("Access-Control-Allow-Credentials", new[] { "true" });
-                     context.Response.Headers.Add("Access-Control-Allow-Origin", new[] { Configuration["AllowedHosts"] });
+                    context.Response.ContentType = "application/json";
+                    context.Response.Headers.Add("Access-Control-Allow-Credentials", new[] { "true" });
+                    context.Response.Headers.Add("Access-Control-Allow-Origin", new[] { Configuration["AllowedHosts"] });
+                    // using Newton.Json
+                    // using (var writer = new StreamWriter(context.Response.Body))
+                    // {
+                    //     new JsonSerializer().Serialize(writer, error);
+                    //     await writer.FlushAsync().ConfigureAwait(false);
+                    // }
+                    var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
-                     using (var writer = new StreamWriter(context.Response.Body))
-                     {
-                         new JsonSerializer().Serialize(writer, error);
-                         await writer.FlushAsync().ConfigureAwait(false);
-                     }
-                 });
+                    var json = JsonSerializer.Serialize(error, options);
+
+                    await context.Response.WriteAsync(json);
+                });
             });
             if (env.IsDevelopment())
             {

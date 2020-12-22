@@ -13,12 +13,12 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
 using WebAPICoreDapper.Extensions;
 using WebAPICoreDapper.Filters;
 using WebAPICoreDapper.Data.ViewModels;
 using WebAPICoreDapper.Data.Models;
 using WebAPICoreDapper.Utilities.Constants;
+using System.Text.Json;
 
 namespace WebAPICoreDapper.Controllers
 {
@@ -65,7 +65,7 @@ namespace WebAPICoreDapper.Controllers
                     new Claim(ClaimTypes.Name, user.UserName),
                     new Claim(SystemConstants.UserClaim.FullName, user.FullName??string.Empty),
                     new Claim(SystemConstants.UserClaim.Roles, string.Join(";", roles)),
-                    new Claim(SystemConstants.UserClaim.Permissions, JsonConvert.SerializeObject(permissions)),
+                    new Claim(SystemConstants.UserClaim.Permissions, JsonSerializer.Serialize(permissions)),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                 };
                 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Tokens:Key"]));
