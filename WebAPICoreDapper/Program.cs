@@ -28,7 +28,7 @@ namespace WebAPICoreDapper
         static void ConfigConfiguration(HostBuilderContext context,IConfigurationBuilder config)
         {
             config.SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings",optional: false, reloadOnChange:true)
+            .AddJsonFile("appsettings.json",optional: false, reloadOnChange:true)
             .AddJsonFile($"appsettings.{context.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange:true);
         }
     }
