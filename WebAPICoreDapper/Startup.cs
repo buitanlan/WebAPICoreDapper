@@ -1,19 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Localization.Routing;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,215 +28,213 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
-namespace WebAPICoreDapper
+namespace WebAPICoreDapper;
+
+public class Startup
 {
-    public class Startup
+    public Startup(IConfiguration configuration)
     {
-        public Startup(IConfiguration configuration)
-        {
-            Configuration = configuration;
-        }
+        Configuration = configuration;
+    }
 
-        public IConfiguration Configuration { get; }
+    public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services)
-        {
-            services.AddTransient<IUserStore<AppUser>, UserStore>();
-            services.AddTransient<IRoleStore<AppRole>, RoleStore>();
-            services.AddTransient<IProductRepository, ProductRepository>();
+    // This method gets called by the runtime. Use this method to add services to the container.
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services.AddTransient<IUserStore<AppUser>, UserStore>();
+        services.AddTransient<IRoleStore<AppRole>, RoleStore>();
+        services.AddTransient<IProductRepository, ProductRepository>();
 
-            services.AddIdentity<AppUser, AppRole>()
+        services.AddIdentity<AppUser, AppRole>()
             .AddDefaultTokenProviders();
-            services.Configure<IdentityOptions>(opt =>
-            {
-                // Default Password settings.
-                opt.Password.RequireDigit = true;
-                opt.Password.RequireLowercase = false;
-                opt.Password.RequireNonAlphanumeric = false;
-                opt.Password.RequireUppercase = false;
-                opt.Password.RequiredLength = 6;
-                opt.Password.RequiredUniqueChars = 1;
-            });
-            services.AddControllers();
-            //     .AddJsonOptions(options =>
+        services.Configure<IdentityOptions>(opt =>
+        {
+            // Default Password settings.
+            opt.Password.RequireDigit = true;
+            opt.Password.RequireLowercase = false;
+            opt.Password.RequireNonAlphanumeric = false;
+            opt.Password.RequireUppercase = false;
+            opt.Password.RequiredLength = 6;
+            opt.Password.RequiredUniqueChars = 1;
+        });
+        services.AddControllers();
+        //     .AddJsonOptions(options =>
 
-            // {
-            //     // Use the default property (Pascal) casing.
-            //     options.JsonSerializerOptions.PropertyNamingPolicy = null;
-            // });
-            // // .AddNewtonsoftJson(options =>
-            // // {
-            // //     options.SerializerSettings.ContractResolver = new DefaultContractResolver();
-            // // });
-            var supportedCultures = new[]
-            {
-                new CultureInfo("en-US"),
-                new CultureInfo("vi-VN")
-            };
-            var options = new RequestLocalizationOptions()
-            {
-                DefaultRequestCulture = new RequestCulture(culture: "vi-VN", uiCulture: "vi-VN"),
-                SupportedCultures = supportedCultures,
-                SupportedUICultures = supportedCultures
-            };
-            options.RequestCultureProviders = new[]
-            {
-                new RouteDataRequestCultureProvider() { Options = options}
-            };
-            services.AddSingleton(options);
-            services.AddSingleton<LocService>();
+        // {
+        //     // Use the default property (Pascal) casing.
+        //     options.JsonSerializerOptions.PropertyNamingPolicy = null;
+        // });
+        // // .AddNewtonsoftJson(options =>
+        // // {
+        // //     options.SerializerSettings.ContractResolver = new DefaultContractResolver();
+        // // });
+        var supportedCultures = new[]
+        {
+            new CultureInfo("en-US"),
+            new CultureInfo("vi-VN")
+        };
+        var options = new RequestLocalizationOptions()
+        {
+            DefaultRequestCulture = new RequestCulture(culture: "vi-VN", uiCulture: "vi-VN"),
+            SupportedCultures = supportedCultures,
+            SupportedUICultures = supportedCultures
+        };
+        options.RequestCultureProviders = new[]
+        {
+            new RouteDataRequestCultureProvider() { Options = options}
+        };
+        services.AddSingleton(options);
+        services.AddSingleton<LocService>();
 
-            services.AddLocalization(options => options.ResourcesPath = "Resources");
+        services.AddLocalization(options => options.ResourcesPath = "Resources");
 
-            //Add authentication to get claims
-            services.AddAuthentication(options =>
+        //Add authentication to get claims
+        services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        }).AddJwtBearer( cfg =>
+        {
+            cfg.RequireHttpsMetadata = false;
+            cfg.SaveToken = true;
+            cfg.TokenValidationParameters = new TokenValidationParameters
             {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            }).AddJwtBearer( cfg =>
+                ValidIssuer = Configuration["Token:Issuer"],
+                ValidAudience = Configuration["Token:Issuer"],
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Token:Key"]))
+            };
+        });
+
+        services.AddMvc()
+            .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
+            .AddDataAnnotationsLocalization(options =>
             {
-                cfg.RequireHttpsMetadata = false;
-                cfg.SaveToken = true;
-                cfg.TokenValidationParameters = new TokenValidationParameters
+                options.DataAnnotationLocalizerProvider = (type, factory) =>
                 {
-                    ValidIssuer = Configuration["Token:Issuer"],
-                    ValidAudience = Configuration["Token:Issuer"],
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Token:Key"]))
+                    var assemblyName = new AssemblyName(typeof(SharedResource).GetTypeInfo().Assembly.FullName);
+                    return factory.Create("SharedResource", assemblyName.Name);
                 };
             });
-
-            services.AddMvc()
-                .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
-                .AddDataAnnotationsLocalization(options =>
-                {
-                    options.DataAnnotationLocalizerProvider = (type, factory) =>
-                    {
-                        var assemblyName = new AssemblyName(typeof(SharedResource).GetTypeInfo().Assembly.FullName);
-                        return factory.Create("SharedResource", assemblyName.Name);
-                    };
-                });
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo
-                {
-                    Version = "v1",
-                    Title = "E-commerce API",
-                    Description = "A simple e-commerce ASP.NET Core Web API",
-                    TermsOfService = new Uri("https://example.com/terms"),
-                    Contact = new OpenApiContact
-                    {
-                        Name = "Bui Tan Lan",
-                        Email = string.Empty,
-                        Url = new Uri("https://github.com/BuiTanLan"),
-                    },
-                    License = new OpenApiLicense
-                    {
-                        Name = "MIT License",
-                        //Url = new Uri("https://example.com/license"),
-                    }
-                });
-
-                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-                {
-                    Description = "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\"",
-                    Name = "Authorization",
-                    In = ParameterLocation.Header,
-                    Type = SecuritySchemeType.ApiKey,
-                    Scheme = "Bearer"
-                });
-
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement()
-                {
-                    {
-                        new OpenApiSecurityScheme
-                        {
-                            Reference = new OpenApiReference
-                            {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "Bearer"
-                            },
-                            Scheme = "oauth2",
-                            Name = "Bearer",
-                            In = ParameterLocation.Header,
-
-                        },
-                        new List<string>()
-                    }
-                });
-            });
-        }
-
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
+        services.AddSwaggerGen(c =>
         {
-            loggerFactory.AddFile(Configuration.GetSection("Logging"));
-            var locOptions = app.ApplicationServices.GetService<IOptions<RequestLocalizationOptions>>();
-            app.UseRequestLocalization(locOptions.Value);
-            app.UseExceptionHandler(options =>
+            c.SwaggerDoc("v1", new OpenApiInfo
             {
-                options.Run(async context =>
+                Version = "v1",
+                Title = "E-commerce API",
+                Description = "A simple e-commerce ASP.NET Core Web API",
+                TermsOfService = new Uri("https://example.com/terms"),
+                Contact = new OpenApiContact
                 {
-                    context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-
-                    var ex = context.Features.Get<IExceptionHandlerFeature>()?.Error;
-                    if (ex == null) return;
-
-                    var error = new
-                    {
-                        message = ex.Message
-                    };
-
-                    context.Response.ContentType = "application/json";
-                    context.Response.Headers.Add("Access-Control-Allow-Credentials", new[] { "true" });
-                    context.Response.Headers.Add("Access-Control-Allow-Origin", new[] { Configuration["AllowedHosts"] });
-                    // using Newton.Json
-                    // using (var writer = new StreamWriter(context.Response.Body))
-                    // {
-                    //     new JsonSerializer().Serialize(writer, error);
-                    //     await writer.FlushAsync().ConfigureAwait(false);
-                    // }
-                    var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-
-                    var json = JsonSerializer.Serialize(error, options);
-
-                    await context.Response.WriteAsync(json);
-                });
-            });
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            app.UseSwagger(c =>
-            {
-                c.PreSerializeFilters.Add((document, request) =>
+                    Name = "Bui Tan Lan",
+                    Email = string.Empty,
+                    Url = new Uri("https://github.com/BuiTanLan"),
+                },
+                License = new OpenApiLicense
                 {
-                    var paths = document.Paths.ToDictionary(item => item.Key.ToLowerInvariant(), item => item.Value);
-                    document.Paths.Clear();
-                    foreach (var pathItem in paths)
+                    Name = "MIT License",
+                    //Url = new Uri("https://example.com/license"),
+                }
+            });
+
+            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            {
+                Description = "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\"",
+                Name = "Authorization",
+                In = ParameterLocation.Header,
+                Type = SecuritySchemeType.ApiKey,
+                Scheme = "Bearer"
+            });
+
+            c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+            {
+                {
+                    new OpenApiSecurityScheme
                     {
-                        document.Paths.Add(pathItem.Key, pathItem.Value);
-                    }
-                });
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        },
+                        Scheme = "oauth2",
+                        Name = "Bearer",
+                        In = ParameterLocation.Header,
+
+                    },
+                    new List<string>()
+                }
             });
-            // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.),
-            // specifying the Swagger JSON endpoint.
-            app.UseSwaggerUI(c =>
+        });
+    }
+
+    // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
+    {
+        loggerFactory.AddFile(Configuration.GetSection("Logging"));
+        var locOptions = app.ApplicationServices.GetService<IOptions<RequestLocalizationOptions>>();
+        app.UseRequestLocalization(locOptions.Value);
+        app.UseExceptionHandler(options =>
+        {
+            options.Run(async context =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+
+                var ex = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+                if (ex == null) return;
+
+                var error = new
+                {
+                    message = ex.Message
+                };
+
+                context.Response.ContentType = "application/json";
+                context.Response.Headers.Add("Access-Control-Allow-Credentials", new[] { "true" });
+                context.Response.Headers.Add("Access-Control-Allow-Origin", new[] { Configuration["AllowedHosts"] });
+                // using Newton.Json
+                // using (var writer = new StreamWriter(context.Response.Body))
+                // {
+                //     new JsonSerializer().Serialize(writer, error);
+                //     await writer.FlushAsync().ConfigureAwait(false);
+                // }
+                var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+
+                var json = JsonSerializer.Serialize(error, options);
+
+                await context.Response.WriteAsync(json);
             });
-
-            app.UseHttpsRedirection();
-
-            app.UseRouting();
-
-            app.UseAuthorization();
-
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
+        });
+        if (env.IsDevelopment())
+        {
+            app.UseDeveloperExceptionPage();
         }
+        app.UseSwagger(c =>
+        {
+            c.PreSerializeFilters.Add((document, request) =>
+            {
+                var paths = document.Paths.ToDictionary(item => item.Key.ToLowerInvariant(), item => item.Value);
+                document.Paths.Clear();
+                foreach (var pathItem in paths)
+                {
+                    document.Paths.Add(pathItem.Key, pathItem.Value);
+                }
+            });
+        });
+        // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.),
+        // specifying the Swagger JSON endpoint.
+        app.UseSwaggerUI(c =>
+        {
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+        });
+
+        app.UseHttpsRedirection();
+
+        app.UseRouting();
+
+        app.UseAuthorization();
+
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapControllers();
+        });
     }
 }
-

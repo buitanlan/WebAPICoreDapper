@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿namespace WebAPICoreDapper.Resources;
 
-namespace WebAPICoreDapper.Resources
+public class SharedResource
 {
-    public class SharedResource
-    {
-    }
 }
