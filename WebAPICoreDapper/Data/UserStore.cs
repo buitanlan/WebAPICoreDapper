@@ -24,16 +24,14 @@ public class UserStore : IUserStore<AppUser>, IUserEmailStore<AppUser>, IUserPho
     public async Task<IdentityResult> CreateAsync(AppUser user, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        await using (var connection = new SqlConnection(_connectionString))
-        {
-            await connection.OpenAsync(cancellationToken);
-            user.Id = Guid.NewGuid();
-            await connection.ExecuteAsync($@"INSERT INTO [AspNetUsers] ([Id],[UserName], [NormalizedUserName], [Email],
-                    [NormalizedEmail], [EmailConfirmed], [PasswordHash], [PhoneNumber], [PhoneNumberConfirmed], [TwoFactorEnabled],[LockoutEnabled],[AccessFailedCount])
-                    VALUES (@{nameof(AppUser.Id)},@{nameof(AppUser.UserName)}, @{nameof(AppUser.NormalizedUserName)}, @{nameof(AppUser.Email)},
-                    @{nameof(AppUser.NormalizedEmail)}, @{nameof(AppUser.EmailConfirmed)}, @{nameof(AppUser.PasswordHash)},
-                    @{nameof(AppUser.PhoneNumber)}, @{nameof(AppUser.PhoneNumberConfirmed)}, @{nameof(AppUser.TwoFactorEnabled)},@{nameof(AppUser.LockoutEnabled)},@{nameof(AppUser.AccessFailedCount)});", user);
-        }
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken);
+        user.Id = Guid.NewGuid();
+        await connection.ExecuteAsync($@"INSERT INTO [AspNetUsers] ([Id],[UserName], [NormalizedUserName], [Email],
+                [NormalizedEmail], [EmailConfirmed], [PasswordHash], [PhoneNumber], [PhoneNumberConfirmed], [TwoFactorEnabled],[LockoutEnabled],[AccessFailedCount])
+                VALUES (@{nameof(AppUser.Id)},@{nameof(AppUser.UserName)}, @{nameof(AppUser.NormalizedUserName)}, @{nameof(AppUser.Email)},
+                @{nameof(AppUser.NormalizedEmail)}, @{nameof(AppUser.EmailConfirmed)}, @{nameof(AppUser.PasswordHash)},
+                @{nameof(AppUser.PhoneNumber)}, @{nameof(AppUser.PhoneNumberConfirmed)}, @{nameof(AppUser.TwoFactorEnabled)},@{nameof(AppUser.LockoutEnabled)},@{nameof(AppUser.AccessFailedCount)});", user);
 
         return IdentityResult.Success;
     }
@@ -42,11 +40,9 @@ public class UserStore : IUserStore<AppUser>, IUserEmailStore<AppUser>, IUserPho
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        await using (var connection = new SqlConnection(_connectionString))
-        {
-            await connection.OpenAsync(cancellationToken);
-            await connection.ExecuteAsync($"DELETE FROM [AspNetUsers] WHERE [Id] = @{nameof(AppUser.Id)}", user);
-        }
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken);
+        await connection.ExecuteAsync($"DELETE FROM [AspNetUsers] WHERE [Id] = @{nameof(AppUser.Id)}", user);
 
         return IdentityResult.Success;
     }

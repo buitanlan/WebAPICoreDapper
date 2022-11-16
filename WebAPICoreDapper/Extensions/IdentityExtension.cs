@@ -10,12 +10,12 @@ public static class IdentityExtension
     {
         var claim = claimsIdentity.Claims.FirstOrDefault(x => x.Type == claimType);
 
-        return (claim != null) ? claim.Value : string.Empty;
+        return claim != null ? claim.Value : string.Empty;
     }
 
     public static Guid GetUserId(this ClaimsPrincipal claimsPrincipal)
     {
-        var claim = ((ClaimsIdentity)claimsPrincipal.Identity).Claims.Single(x => x.Type == ClaimTypes.NameIdentifier);
+        var claim = ((ClaimsIdentity)claimsPrincipal.Identity)!.Claims.Single(x => x.Type == ClaimTypes.NameIdentifier);
         return Guid.Parse(claim.Value);
     }
 }
