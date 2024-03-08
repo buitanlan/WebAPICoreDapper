@@ -11,15 +11,11 @@ using WebAPICoreDapper.Data.ViewModels;
 
 namespace WebAPICoreDapper.Data.Repositories;
 
-public class ProductRepository : IProductRepository
+public class ProductRepository(IConfiguration configuration) : IProductRepository
 
 {
-    private readonly string _connectionString;
+    private readonly string _connectionString = configuration.GetConnectionString("DbConnectionString");
 
-    public ProductRepository(IConfiguration configuration)
-    {
-        _connectionString = configuration.GetConnectionString("DbConnectionString");
-    }
     public async Task<IEnumerable<Product>> GetAllAsync(string culture)
     {
         await using var conn = new SqlConnection(_connectionString);
@@ -62,7 +58,7 @@ public class ProductRepository : IProductRepository
 
         var result = await conn.QueryAsync<Product>("Get_Product_AllPaging", parameters, null, null, System.Data.CommandType.StoredProcedure);
 
-        int totalRow = parameters.Get<int>("@totalRow");
+        var totalRow = parameters.Get<int>("@totalRow");
 
         var pagedResult = new PagedResult<Product>()
         {
@@ -96,7 +92,7 @@ public class ProductRepository : IProductRepository
         parameters.Add("@id", dbType: System.Data.DbType.Int32, direction: System.Data.ParameterDirection.Output);
         var result = await conn.ExecuteAsync("Create_Product", parameters, null, null, System.Data.CommandType.StoredProcedure);
 
-        int newId = parameters.Get<int>("@id");
+        var newId = parameters.Get<int>("@id");
         return newId;
     }
 
@@ -166,7 +162,7 @@ public class ProductRepository : IProductRepository
         var result = await conn.QueryAsync<Product>("[Search_Product_ByAttributes]",
             parameters, null, null, System.Data.CommandType.StoredProcedure);
 
-        int totalRow = parameters.Get<int>("@totalRow");
+        var totalRow = parameters.Get<int>("@totalRow");
 
         var pagedResult = new PagedResult<Product>()
         {

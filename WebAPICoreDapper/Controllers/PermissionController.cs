@@ -1,11 +1,7 @@
 using Dapper;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
 using System.Data;
 using Microsoft.Data.SqlClient;
-using System.Threading.Tasks;
 using WebAPICoreDapper.Extensions;
 using WebAPICoreDapper.Data.ViewModels;
 
@@ -13,14 +9,9 @@ namespace WebAPICoreDapper.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class PermissionController : ControllerBase
+public class PermissionController(IConfiguration configuration) : ControllerBase
 {
-    private readonly string _connectionString;
-
-    public PermissionController(IConfiguration configuration)
-    {
-        _connectionString = configuration.GetConnectionString("DbConnectionString");
-    }
+    private readonly string _connectionString = configuration.GetConnectionString("DbConnectionString");
 
     [HttpGet("function-actions")]
     public async Task<IActionResult> GetAllWithPermission()

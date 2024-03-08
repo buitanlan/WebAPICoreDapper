@@ -1,14 +1,8 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.Data.SqlClient;
-using System.Linq;
-using System.Threading.Tasks;
 using Dapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-
-
 using WebAPICoreDapper.Filters;
 using WebAPICoreDapper.Data.Models;
 using WebAPICoreDapper.Utilities.Dtos;
@@ -17,16 +11,10 @@ namespace WebAPICoreDapper.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class UserController : ControllerBase
+public class UserController(UserManager<AppUser> userManager, IConfiguration configuration)
+    : ControllerBase
 {
-    private readonly UserManager<AppUser> _userManager;
-    private readonly string _connectionString;
-
-    public UserController(UserManager<AppUser> userManager, IConfiguration configuration)
-    {
-        _userManager = userManager;
-        _connectionString = configuration.GetConnectionString("DbConnectionString");
-    }
+    private readonly string _connectionString = configuration.GetConnectionString("DbConnectionString");
 
     // GET: api/Role
     [HttpGet]
@@ -47,7 +35,7 @@ public class UserController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> Get(string id)
     {
-        return Ok(await _userManager.FindByIdAsync(id));
+        return Ok(await userManager.FindByIdAsync(id));
     }
 
     [HttpGet("paging")]
@@ -82,7 +70,7 @@ public class UserController : ControllerBase
     [ValidateModel]
     public async Task<IActionResult> Post([FromBody] AppUser user)
     {
-        var result = await _userManager.CreateAsync(user);
+        var result = await userManager.CreateAsync(user);
         if (result.Succeeded)
             return Ok();
         return BadRequest();
@@ -93,7 +81,7 @@ public class UserController : ControllerBase
     public async Task<IActionResult> Put([Required] Guid id, [FromBody] AppUser user)
     {
         user.Id = id;
-        var result = await _userManager.UpdateAsync(user);
+        var result = await userManager.UpdateAsync(user);
         if (result.Succeeded)
             return Ok();
         return BadRequest();
@@ -101,7 +89,7 @@ public class UserController : ControllerBase
     [HttpPut("{id}/{roleName}/assign-to-roles")]
     public async Task<IActionResult> AssignToRoles([Required] Guid id, [Required] string roleName)
     {
-        var user = await _userManager.FindByIdAsync(id.ToString());
+        var user = await userManager.FindByIdAsync(id.ToString());
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync();
         var normalizedName = roleName.ToUpper();
@@ -123,7 +111,7 @@ public class UserController : ControllerBase
     [ValidateModel]
     public async Task<IActionResult> RemoveRoleToUser([Required] Guid id, [Required] string roleName)
     {
-        var user = await _userManager.FindByIdAsync(id.ToString());
+        var user = await userManager.FindByIdAsync(id.ToString());
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync();
         var roleId = await connection.ExecuteScalarAsync<Guid?>("SELECT [Id] FROM [AspNetRoles] WHERE [NormalizedName] = @normalizedName", new { normalizedName = roleName.ToUpper() });
@@ -134,16 +122,16 @@ public class UserController : ControllerBase
     [HttpGet("{id}/roles")]
     public async Task<IActionResult> GetUserRoles(string id)
     {
-        var user = await _userManager.FindByIdAsync(id.ToString());
-        var model = await _userManager.GetRolesAsync(user);
+        var user = await userManager.FindByIdAsync(id.ToString());
+        var model = await userManager.GetRolesAsync(user);
         return Ok(model);
     }
     // DELETE: api/ApiWithActions/5
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(string id)
     {
-        var user = await _userManager.FindByIdAsync(id);
-        var result = await _userManager.DeleteAsync(user);
+        var user = await userManager.FindByIdAsync(id);
+        var result = await userManager.DeleteAsync(user);
         if (result.Succeeded)
             return Ok();
         return BadRequest();

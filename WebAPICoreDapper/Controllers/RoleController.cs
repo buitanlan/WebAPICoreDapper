@@ -1,13 +1,8 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.Data.SqlClient;
-using System.Linq;
-using System.Threading.Tasks;
 using Dapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-
 using WebAPICoreDapper.Filters;
 using WebAPICoreDapper.Utilities.Dtos;
 using WebAPICoreDapper.Data.Models;
@@ -16,16 +11,10 @@ namespace WebAPICoreDapper.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class RoleController : ControllerBase
+public class RoleController(RoleManager<AppRole> roleManager, IConfiguration configuration)
+    : ControllerBase
 {
-    private readonly RoleManager<AppRole> _roleManager;
-    private readonly string _connectionString;
-
-    public RoleController(RoleManager<AppRole> roleManager, IConfiguration configuration)
-    {
-        _roleManager = roleManager;
-        _connectionString = configuration.GetConnectionString("DbConnectionString");
-    }
+    private readonly string _connectionString = configuration.GetConnectionString("DbConnectionString");
 
     // GET: api/Role
     [HttpGet]
@@ -44,7 +33,7 @@ public class RoleController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> Get(string id)
     {
-        return Ok(await _roleManager.FindByIdAsync(id));
+        return Ok(await roleManager.FindByIdAsync(id));
     }
 
     [HttpGet("paging")]
@@ -62,7 +51,7 @@ public class RoleController : ControllerBase
 
         var result = await conn.QueryAsync<AppRole>("Get_Role_AllPaging", parameters, null, null, System.Data.CommandType.StoredProcedure);
 
-        int totalRow = parameters.Get<int>("@totalRow");
+        var totalRow = parameters.Get<int>("@totalRow");
 
         var pagedResult = new PagedResult<AppRole>()
         {
@@ -79,7 +68,7 @@ public class RoleController : ControllerBase
     [ValidateModel]
     public async Task<IActionResult> Post([FromBody] AppRole role)
     {
-        var result = await _roleManager.CreateAsync(role);
+        var result = await roleManager.CreateAsync(role);
         if (result.Succeeded)
             return Ok();
         return BadRequest();
@@ -90,7 +79,7 @@ public class RoleController : ControllerBase
     public async Task<IActionResult> Put([Required] Guid id, [FromBody] AppRole role)
     {
         role.Id = id;
-        var result = await _roleManager.UpdateAsync(role);
+        var result = await roleManager.UpdateAsync(role);
         if (result.Succeeded)
             return Ok();
         return BadRequest();
@@ -100,8 +89,8 @@ public class RoleController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(string id)
     {
-        var role = await _roleManager.FindByIdAsync(id);
-        var result = await _roleManager.DeleteAsync(role);
+        var role = await roleManager.FindByIdAsync(id);
+        var result = await roleManager.DeleteAsync(role);
         if (result.Succeeded)
             return Ok();
         return BadRequest();

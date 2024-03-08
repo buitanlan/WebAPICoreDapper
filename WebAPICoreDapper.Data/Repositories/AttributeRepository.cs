@@ -9,14 +9,10 @@ using WebAPICoreDapper.Data.ViewModels;
 
 namespace WebAPICoreDapper.Data.Repositories;
 
-public class AttributeRepository : IAttributeRepository
+public class AttributeRepository(IConfiguration configuration) : IAttributeRepository
 {
-    private readonly string _connectionString;
+    private readonly string _connectionString = configuration.GetConnectionString("DbConnectionString");
 
-    public AttributeRepository(IConfiguration configuration)
-    {
-        _connectionString = configuration.GetConnectionString("DbConnectionString");
-    }
     public async Task Add(string culture, AttributeViewModel attribute)
     {
         await using var conn = new SqlConnection(_connectionString);

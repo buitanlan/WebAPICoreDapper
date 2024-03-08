@@ -1,25 +1,15 @@
 using Dapper;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
 using Microsoft.Data.SqlClient;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using WebAPICoreDapper.Data.Models;
 
 namespace WebAPICoreDapper.Data;
 
-public class UserStore : IUserStore<AppUser>, IUserEmailStore<AppUser>, IUserPhoneNumberStore<AppUser>,
+public class UserStore(IConfiguration configuration) : IUserStore<AppUser>, IUserEmailStore<AppUser>,
+    IUserPhoneNumberStore<AppUser>,
     IUserTwoFactorStore<AppUser>, IUserPasswordStore<AppUser>, IUserRoleStore<AppUser>
 {
-    private readonly string _connectionString;
-
-    public UserStore(IConfiguration configuration)
-    {
-        _connectionString = configuration.GetConnectionString("DbConnectionString");
-    }
+    private readonly string _connectionString = configuration.GetConnectionString("DbConnectionString");
 
     public async Task<IdentityResult> CreateAsync(AppUser user, CancellationToken cancellationToken)
     {
@@ -27,11 +17,13 @@ public class UserStore : IUserStore<AppUser>, IUserEmailStore<AppUser>, IUserPho
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken);
         user.Id = Guid.NewGuid();
-        await connection.ExecuteAsync($@"INSERT INTO [AspNetUsers] ([Id],[UserName], [NormalizedUserName], [Email],
-                [NormalizedEmail], [EmailConfirmed], [PasswordHash], [PhoneNumber], [PhoneNumberConfirmed], [TwoFactorEnabled],[LockoutEnabled],[AccessFailedCount])
-                VALUES (@{nameof(AppUser.Id)},@{nameof(AppUser.UserName)}, @{nameof(AppUser.NormalizedUserName)}, @{nameof(AppUser.Email)},
-                @{nameof(AppUser.NormalizedEmail)}, @{nameof(AppUser.EmailConfirmed)}, @{nameof(AppUser.PasswordHash)},
-                @{nameof(AppUser.PhoneNumber)}, @{nameof(AppUser.PhoneNumberConfirmed)}, @{nameof(AppUser.TwoFactorEnabled)},@{nameof(AppUser.LockoutEnabled)},@{nameof(AppUser.AccessFailedCount)});", user);
+        await connection.ExecuteAsync($"""
+                                       INSERT INTO [AspNetUsers] ([Id],[UserName], [NormalizedUserName], [Email],
+                                                       [NormalizedEmail], [EmailConfirmed], [PasswordHash], [PhoneNumber], [PhoneNumberConfirmed], [TwoFactorEnabled],[LockoutEnabled],[AccessFailedCount])
+                                                       VALUES (@{nameof(AppUser.Id)},@{nameof(AppUser.UserName)}, @{nameof(AppUser.NormalizedUserName)}, @{nameof(AppUser.Email)},
+                                                       @{nameof(AppUser.NormalizedEmail)}, @{nameof(AppUser.EmailConfirmed)}, @{nameof(AppUser.PasswordHash)},
+                                                       @{nameof(AppUser.PhoneNumber)}, @{nameof(AppUser.PhoneNumberConfirmed)}, @{nameof(AppUser.TwoFactorEnabled)},@{nameof(AppUser.LockoutEnabled)},@{nameof(AppUser.AccessFailedCount)});
+                                       """, user);
 
         return IdentityResult.Success;
     }
@@ -53,8 +45,10 @@ public class UserStore : IUserStore<AppUser>, IUserEmailStore<AppUser>, IUserPho
 
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken);
-        return await connection.QuerySingleOrDefaultAsync<AppUser>($@"SELECT * FROM [AspNetUsers]
-                    WHERE [Id] = @{nameof(userId)}", new { userId });
+        return await connection.QuerySingleOrDefaultAsync<AppUser>($"""
+                                                                    SELECT * FROM [AspNetUsers]
+                                                                                        WHERE [Id] = @{nameof(userId)}
+                                                                    """, new { userId });
     }
 
     public async Task<AppUser> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
@@ -63,8 +57,10 @@ public class UserStore : IUserStore<AppUser>, IUserEmailStore<AppUser>, IUserPho
 
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken);
-        return await connection.QuerySingleOrDefaultAsync<AppUser>($@"SELECT * FROM [AspNetUsers]
-                    WHERE [NormalizedUserName] = @{nameof(normalizedUserName)}", new { normalizedUserName });
+        return await connection.QuerySingleOrDefaultAsync<AppUser>($"""
+                                                                    SELECT * FROM [AspNetUsers]
+                                                                                        WHERE [NormalizedUserName] = @{nameof(normalizedUserName)}
+                                                                    """, new { normalizedUserName });
     }
 
     public Task<string> GetNormalizedUserNameAsync(AppUser user, CancellationToken cancellationToken)
@@ -101,17 +97,19 @@ public class UserStore : IUserStore<AppUser>, IUserEmailStore<AppUser>, IUserPho
         await using (var connection = new SqlConnection(_connectionString))
         {
             await connection.OpenAsync(cancellationToken);
-            await connection.ExecuteAsync($@"UPDATE [AspNetUsers] SET
-                    [UserName] = @{nameof(AppUser.UserName)},
-                    [NormalizedUserName] = @{nameof(AppUser.NormalizedUserName)},
-                    [Email] = @{nameof(AppUser.Email)},
-                    [NormalizedEmail] = @{nameof(AppUser.NormalizedEmail)},
-                    [EmailConfirmed] = @{nameof(AppUser.EmailConfirmed)},
-                    [PasswordHash] = @{nameof(AppUser.PasswordHash)},
-                    [PhoneNumber] = @{nameof(AppUser.PhoneNumber)},
-                    [PhoneNumberConfirmed] = @{nameof(AppUser.PhoneNumberConfirmed)},
-                    [TwoFactorEnabled] = @{nameof(AppUser.TwoFactorEnabled)}
-                    WHERE [Id] = @{nameof(AppUser.Id)}", user);
+            await connection.ExecuteAsync($"""
+                                           UPDATE [AspNetUsers] SET
+                                                               [UserName] = @{nameof(AppUser.UserName)},
+                                                               [NormalizedUserName] = @{nameof(AppUser.NormalizedUserName)},
+                                                               [Email] = @{nameof(AppUser.Email)},
+                                                               [NormalizedEmail] = @{nameof(AppUser.NormalizedEmail)},
+                                                               [EmailConfirmed] = @{nameof(AppUser.EmailConfirmed)},
+                                                               [PasswordHash] = @{nameof(AppUser.PasswordHash)},
+                                                               [PhoneNumber] = @{nameof(AppUser.PhoneNumber)},
+                                                               [PhoneNumberConfirmed] = @{nameof(AppUser.PhoneNumberConfirmed)},
+                                                               [TwoFactorEnabled] = @{nameof(AppUser.TwoFactorEnabled)}
+                                                               WHERE [Id] = @{nameof(AppUser.Id)}
+                                           """, user);
         }
 
         return IdentityResult.Success;
@@ -145,8 +143,10 @@ public class UserStore : IUserStore<AppUser>, IUserEmailStore<AppUser>, IUserPho
 
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken);
-        return await connection.QuerySingleOrDefaultAsync<AppUser>($@"SELECT * FROM [AspNetUsers]
-                    WHERE [NormalizedEmail] = @{nameof(normalizedEmail)}", new { normalizedEmail });
+        return await connection.QuerySingleOrDefaultAsync<AppUser>($"""
+                                                                    SELECT * FROM [AspNetUsers]
+                                                                                        WHERE [NormalizedEmail] = @{nameof(normalizedEmail)}
+                                                                    """, new { normalizedEmail });
     }
 
     public Task<string> GetNormalizedEmailAsync(AppUser user, CancellationToken cancellationToken)

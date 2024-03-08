@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Builder;
-
-namespace WebAPICoreDapper.Extensions;
+﻿namespace WebAPICoreDapper.Extensions;
 
 public class LocalizationPipeline
 {

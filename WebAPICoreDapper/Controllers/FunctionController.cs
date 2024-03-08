@@ -1,11 +1,7 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.Data.SqlClient;
-using System.Linq;
-using System.Threading.Tasks;
 using Dapper;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using WebAPICoreDapper.Filters;
 using WebAPICoreDapper.Data.Models;
 using WebAPICoreDapper.Utilities.Dtos;
@@ -14,14 +10,9 @@ namespace WebAPICoreDapper.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class FunctionController : ControllerBase
+public class FunctionController(IConfiguration configuration) : ControllerBase
 {
-    private readonly string _connectionString;
-
-    public FunctionController(IConfiguration configuration)
-    {
-        _connectionString = configuration.GetConnectionString("DbConnectionString");
-    }
+    private readonly string _connectionString = configuration.GetConnectionString("DbConnectionString");
 
     // GET: api/Role
     [HttpGet]
@@ -65,7 +56,7 @@ public class FunctionController : ControllerBase
 
         var result = await conn.QueryAsync<Function>("Get_Function_AllPaging", parameters, null, null, System.Data.CommandType.StoredProcedure);
 
-        int totalRow = parameters.Get<int>("@totalRow");
+        var totalRow = parameters.Get<int>("@totalRow");
 
         var pagedResult = new PagedResult<Function>()
         {
