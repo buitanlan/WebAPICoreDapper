@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Localization.Routing;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using WebAPICoreDapper.Data;
 using WebAPICoreDapper.Data.Models;
 using WebAPICoreDapper.Data.Repositories;
